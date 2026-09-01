@@ -15,7 +15,7 @@ services:
 
 
   playwright-repo-db-container:
-    image: playwright-repo-database-image
+    image: lakshmisaranya/playwright-repo-database-image:v2
     env_file:
       - .env
     depends_on:
