@@ -1,0 +1,41 @@
+services:
+  postgres-db-container:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  playwright-repo-db-container:
+    image: playwright-repo-database-image
+    env_file:
+      - .env
+    depends_on:
+      postgres-db-container:
+        condition: service_healthy
+    command: npm test
+    # stdin_open: true
+    # tty: true
+    volumes:
+      - ./src/features:/app/src/features
+      - ./src/steps:/app/src/steps
+      - ./src/pages:/app/src/pages
+      - test-results-volume:/app/test-results
+  report-viewer:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - test-results-volume:/usr/share/nginx/html:ro
+
+volumes:
+  test-results-volume:
+   
